@@ -1,140 +1,138 @@
-# 执行对比页（Trace Compare）
+# Trace Compare
 
-状态：已实现，视觉测试已拆分为共享区域与页面内容，分区基线已获人工批准，批准后完整视觉对比 12 项通过，代码与截图已提交，合并状态未确认；本文为需求与验收依据，分阶段验证结果与待验收项见[交付记录](../../reports/trace-compare-delivery.md)。
+The implemented `/compare` page places two runs of the same operation side by side so developers can inspect duration, token use, and the steps behind a difference. All values are fixtures.
 
-## 目标
+## At a glance
 
-开发者发现同一操作的两次 Agent 执行耗时或 Token 消耗存在差异，希望选择一次基准执行和一次对照执行，查看整体变化，并定位发生变化的执行步骤。
+- **Deliberate selection:** A baseline determines which comparison runs are eligible; changing or clearing it never leaves stale results.
+- **Explicit calculations:** Differences use the original trace totals, and a zero baseline never produces a misleading percentage.
+- **Stable alignment:** Steps pair by type, name, and occurrence order, without claiming to reconstruct call relationships.
 
-## 页面与入口
+[TraceCompare.tsx](../../../src/pages/TraceCompare/TraceCompare.tsx) owns the page state; [comparison.ts](../../../src/pages/TraceCompare/comparison.ts) contains the independent calculations. The rules and behavior checklist below document the current implementation.
 
-页面可见文案、占位提示和可访问名称统一使用英文，与现有英文界面保持一致。本文使用中文描述行为，示例文字表达语义，不要求逐字作为页面文案。
+## Page and entry point
 
-- 新增 `/compare` 页面，在侧栏 OBSERVE 下新增 **Trace Compare** 真实链接。
-- 页面标题为 Trace Compare，明确标注数据为固定样例。
-- 支持直接访问与刷新；当前导航项提供选中语义。
-- 页面包含执行选择区、整体指标对比区和执行步骤对比区。
-- 页面内选择不写入 URL；刷新或重新进入时恢复初始未选择状态。
+Visible text, placeholders, and accessible names use English throughout the page. Example labels below describe their meaning and may differ from the exact UI copy.
 
-## 执行选择
+- The OBSERVE section of the sidebar links to `/compare` as **Trace Compare**.
+- The page is titled Trace Compare, marks its data as fixed samples, and includes run selection, overall metrics, and step comparison sections.
+- Direct visits and refreshes work, and navigation indicates the current page.
+- Selection stays in page state rather than the URL. A refresh or new visit starts with neither run selected.
 
-- 提供“基准执行”和“对照执行”两个带明确标签的选择控件，初始均未选择。
-- 基准选项来自完整 Trace 数据集，展示操作名称、Trace ID 和状态；保持数据源顺序。
-- 未选基准时，对照控件禁用，并提示先选择基准执行。
-- 对照选项仅包含 `operation` 与基准完全相同、ID 不同的记录，保持数据源顺序；服务、模型和状态可以不同。
-- 选择基准后不自动选择对照。没有候选时禁用对照控件，并显示“该操作暂无其他可对比执行”。
-- 更换基准时，现有对照仍满足条件则保留，否则清空。
-- 基准允许清空，清空后同时清空对照；对照也允许单独清空。通过弹层中的“清空选择”执行清空。
-- “交换两次执行”仅在两侧均有效时可用，点击后交换选择并重新计算全部差异。
-- 未选满两侧时，指标区和步骤区显示选择提示，不显示或残留上一次对比结果。
+## Choosing runs
 
-### 选择器展示与操作
+- The baseline and comparison pickers have explicit labels and start empty.
+- Baseline options come from the full trace dataset in source order, showing operation, Trace ID, and status.
+- The comparison picker is disabled with an explanation until a baseline is chosen.
+- Comparison options have exactly the same `operation` as the baseline and a different ID. They retain source order; service, model, and status may differ.
+- Choosing a baseline does not select a comparison automatically. When no candidates exist, the comparison picker stays disabled and explains why.
+- Changing the baseline retains a comparison only if it remains eligible; otherwise, it clears the comparison.
+- "Clear selection" in either popup clears that picker. Clearing the baseline also clears the comparison, while clearing the comparison leaves the baseline intact.
+- "Swap runs" is available only when both choices are valid and recalculates every difference.
+- Until both runs are selected, the metrics and steps sections show guidance instead of stale results.
 
-- 支持按操作名称或 Trace ID 搜索，忽略大小写和首尾空格；搜索只改变候选展示，不改变已选执行。
-- 弹层默认与输入框等宽，限制在视口内；最大高度 320px，空间不足时缩小或向上展开，列表内部滚动。
-- 选项按操作名称、Trace ID 与状态分层展示，长文本换行，不由最长选项撑宽弹层。关闭后完整信息仍可在执行详情和重新展开的选项中查看。
-- 箭头距右边框 16px，文字预留独立空间；点击整个输入框可展开。
-- 方向键移动、Enter 选择、Escape 取消并关闭、Tab 关闭并继续导航；打开时定位当前选择，活动项自动滚入可见区域。搜索无结果时提供提示，仍可清空选择。
+### Picker display and keyboard behavior
 
-## 整体指标
+- Search matches operation names or Trace IDs, ignoring case and surrounding whitespace. It filters visible candidates without changing the selected run.
+- The popup starts at the input's width, stays inside the viewport, and is at most 320px tall. It shrinks or opens upward when needed, with internal scrolling for options.
+- Options distinguish operation, Trace ID, and status. Long text wraps without widening the popup; full information remains available in run details and reopened options.
+- The arrow sits 16px from the right edge with space reserved for text. Clicking anywhere in the input opens the picker.
+- Arrow keys move the active option; Enter selects; Escape cancels and closes; Tab closes and continues navigation. Opening the picker activates the current choice and scrolls it into view. An empty search result is explained and still permits clearing.
 
-并列展示两次执行的操作名称、Trace ID、服务、模型、状态、总耗时和 Token 数。状态使用文字与颜色共同表达，仅作并列展示。
+## Overall metrics
 
-总耗时与 Token 展示绝对变化和百分比变化：
+The page shows both runs side by side with operation, Trace ID, service, model, status, total duration, and token count. Status appears in both text and color without an automatic interpretation.
 
-| 项目       | 规则                                                                             |
-| ---------- | -------------------------------------------------------------------------------- |
-| 绝对变化   | 对照值 − 基准值                                                                  |
-| 百分比变化 | （对照值 − 基准值）÷ 基准值 × 100%                                               |
-| 基准为 0   | 百分比显示“不可计算”，包括两侧均为 0；绝对变化正常展示                           |
-| 无变化     | 显示“无变化”，基准非 0 时百分比为 0.0%                                           |
-| 增加或减少 | 使用“增加 / 减少”加变化幅度，不能只靠颜色或箭头                                  |
-| 数值精度   | 耗时统一以 ms 显示，Token 为整数，百分比保留一位小数；计算使用原始值，最后格式化 |
+It shows absolute and percentage changes for total duration and tokens:
 
-方向按原始差值判断。非零百分比若四舍五入后为 0.0%，幅度显示“小于 0.1%”，保留增加或减少方向。
+| Case                 | Rule                                                                                                                                |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Absolute change      | Comparison value minus baseline value                                                                                               |
+| Percentage change    | (Comparison value minus baseline value) ÷ baseline value × 100%                                                                     |
+| Zero baseline        | Show "not available" for the percentage, even when both values are zero; still show the absolute change                             |
+| No change            | Show "no change" and, for a nonzero baseline, 0.0%                                                                                  |
+| Increase or decrease | State the direction and magnitude in words; color or arrows alone are insufficient                                                  |
+| Precision            | Show duration in ms, tokens as integers, and percentages to one decimal place. Calculate from raw values and format only at the end |
 
-耗时增加不自动解释为异常，Token 减少不自动解释为质量改善。Trace 总耗时取 `durationMs`，不通过累加 Span 耗时推算；Span 可能重叠。
+Direction comes from the raw difference. A nonzero percentage that would round to 0.0% appears as "less than 0.1%" while retaining its direction.
 
-## 执行步骤对齐
+A longer duration is not automatically an error, nor are fewer tokens automatically a quality improvement. Total trace duration comes from `durationMs`; spans can overlap, so their durations are not summed to infer the total.
 
-### 配对规则
+## Aligning steps
 
-- 使用 `kind` 和 `label` 的组合进行精确匹配，不使用 Span ID、`depth` 或耗时匹配。
-- 同一组合重复出现时，按各自在 `spans` 数组中的出现顺序逐一配对，不额外排序。
-- 先按基准数组顺序输出所有基准步骤及其配对，再按对照数组顺序追加尚未配对的步骤。
-- 不修改输入数组或原始 fixture。
-- 页面说明：对齐依据是步骤类型、名称和出现顺序，不代表自动识别真实调用关系。
+### Matching rules
 
-示例：基准为 `A₁、B、A₂`，对照为 `A₁、A₂、C`，其中两个 A 的类型与名称相同，则输出顺序为 `A₁ 配对、B 移除、A₂ 配对、C 新增`。下标只用于说明重复出现顺序，不参与匹配。
+- Spans match exactly by `kind` and `label`, not by span ID, `depth`, or duration.
+- Repeated matches pair in their original `spans` array order without extra sorting.
+- Output follows baseline order for baseline steps and their matches, then comparison order for unmatched comparison steps.
+- Alignment does not mutate either input array or the original fixtures.
+- The page explains that alignment uses type, name, and occurrence order rather than inferred call relationships.
 
-### 展示规则
+For example, with baseline `A₁, B, A₂` and comparison `A₁, A₂, C`, where both A steps share a type and name, the output is `A₁ matched, B removed, A₂ matched, C added`. The subscripts only explain occurrence order; they are not match keys.
 
-| 字段     | 内容                                                                              |
-| -------- | --------------------------------------------------------------------------------- |
-| 步骤     | 完整名称与类型；重复同名步骤显示出现序号以便区分                                  |
-| 基准耗时 | 对应步骤的 `durationMs`，缺失显示 `—`                                             |
-| 对照耗时 | 对应步骤的 `durationMs`，缺失显示 `—`                                             |
-| 耗时变化 | 已配对时为对照耗时减基准耗时，使用与整体指标一致的方向文案，单位 ms；不展示百分比 |
-| 对齐状态 | 已配对、仅对照存在的“新增”、仅基准存在的“移除”                                    |
+### Display rules
 
-新增或移除的步骤不计算耗时变化，显示 `—`，不能把缺失当成 0。某侧步骤为空时仍展示另一侧全部步骤；两侧均为空时显示“暂无可对比步骤”，整体指标仍正常展示。
+| Field               | Content                                                                                                                                              |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Step                | Full name and type; number repeated steps with the same name so readers can distinguish them                                                         |
+| Baseline duration   | The step's `durationMs`, or `—` if absent                                                                                                            |
+| Comparison duration | The step's `durationMs`, or `—` if absent                                                                                                            |
+| Duration change     | For matched steps, comparison duration minus baseline duration, using the same directional wording as overall metrics and units of ms; no percentage |
+| Alignment status    | Matched, added (comparison only), or removed (baseline only)                                                                                         |
 
-## 关联 Trace
+An added or removed step has no duration change; show `—` rather than treating the missing side as zero. If one run has no steps, show every step from the other run. If both have none, explain that there are no steps to compare while still showing overall metrics.
 
-- 每侧有效选择均提供“查看基准 Trace”或“查看对照 Trace”真实链接，目标为 `/?trace=<traceId>`。
-- 进入 Trace Explorer 后定位对应记录，详情和 Waterfall 同步展示；直接访问与刷新链接均可定位。
-- 对比样例必须存在于 Trace Explorer 使用的 Trace 数据集中，不得产生无法定位的孤立记录。
-- 本轮不增加从 Trace Explorer 发起对比的入口，也不要求跨页返回后恢复选择。
+## Links to traces
 
-## 布局与可访问性
+- Each valid choice has a real "View baseline Trace" or "View comparison Trace" link to `/?trace=<traceId>`.
+- Trace Explorer opens the corresponding record with synchronized details and waterfall, including on direct visits and after refresh.
+- Every comparison fixture also exists in Trace Explorer's dataset, so these links can locate their runs.
+- Trace Explorer has no "compare" entry point, and comparison selections do not survive cross-page navigation.
 
-- 延续现有暗色界面，复用 AppShell、Card、Button、MetricCard 与已有语义 token；组件不适合时保持局部实现，不为本页强行扩展公共接口。
-- 桌面参考尺寸为 1440×900，两次执行并列展示，中间以竖向边框和内边距分隔；移动端参考尺寸为 390×844，按基准、对照顺序上下排列，中间改为横向边框分隔。
-- 步骤表允许容器内横向滚动，页面整体不得水平溢出；中间宽度也应随容器调整。
-- 长操作名称、Trace ID 和步骤名称提供换行或局部滚动，不仅靠截断隐藏关键信息。
-- 输入保留明确标签；全部操作可用键盘完成，有可见焦点；禁用使用实际禁用属性并提供原因。
-- 空结果、未选择和无步骤状态使用文字解释，不用空白面板代替。
+## Layout and accessibility
 
-## 数据与范围
+- The page follows the existing dark UI and reuses AppShell, Card, Button, StatusBadge, and semantic tokens. The domain-specific picker stays local rather than expanding a shared component API for one page.
+- At the 1440×900 desktop reference size, the runs sit side by side with a vertical divider and padding. At 390×844 on mobile, baseline stacks above comparison with a horizontal divider.
+- The step table scrolls horizontally within its container without causing page-level overflow. The layout also adapts between the reference sizes.
+- Long operation names, Trace IDs, and step names wrap or scroll locally so essential information remains available.
+- Inputs have explicit labels; all actions support keyboard access and visible focus. Unavailable actions use real disabled attributes with an explanation.
+- Empty results, incomplete selections, and runs without steps have text explanations instead of blank panels.
 
-- 新增独立对比样例文件，复用现有 Trace、Span 类型，并接入统一 Trace 数据集；既有 fixture 的字段、值与含义保持不变。
-- 样例至少包含：同一操作的三次执行、不同操作、无其他同操作记录的执行、不同模型或状态、重复同名步骤、跨类型同名步骤、新增与移除步骤、零耗时或零 Token、空步骤和长名称。
-- ID 全局唯一，数值使用有效的非负值；样例保证基准方向与交换后方向均可验证。
-- 数据与指标都是固定样例，不宣称生产测量或性能基准。
-- 不包含后端、异步加载、实时更新、成本推算、自动根因分析、导出、新依赖或通用图表系统。
+## Data and scope
 
-## 验收条件
+- [Comparison fixtures](../../../src/data/comparisons.ts) use the existing Trace and Span types and join the common trace dataset. Existing fixture fields, values, and meanings remain unchanged.
+- The fixtures cover three runs of one operation, another operation, a run without a same-operation candidate, different models or statuses, repeated same-name steps, same-name steps of different types, added and removed steps, zero duration or tokens, empty steps, and long names.
+- IDs are globally unique and numeric values are valid and nonnegative. The examples support checking both the baseline direction and the direction after swapping.
+- Data and metrics are fixed examples, not production measurements or performance benchmarks.
+- The page has no backend, asynchronous loading, live updates, cost estimation, automated root-cause analysis, export, new dependencies, or general-purpose chart system.
 
-| 场景                       | 可观察结果                                                 |
-| -------------------------- | ---------------------------------------------------------- |
-| 首次进入或刷新             | 两侧未选，对照与交换禁用，对比区显示选择提示               |
-| 选择基准                   | 对照只提供相同操作且不同 ID 的记录；无候选时有明确提示     |
-| 更换或清空选择             | 有效对照保留，无效对照清空；旧指标和步骤不残留             |
-| 基准 1000 ms、对照 1500 ms | 耗时增加 500 ms、50.0%                                     |
-| 交换上述执行               | 耗时减少 500 ms、33.3%，步骤新增与移除方向随之变化         |
-| 基准 Token 为 0            | 绝对变化正确，百分比不可计算；两侧为 0 时同样适用          |
-| 两侧非零且相等             | 显示无变化和 0.0%                                          |
-| 很小的非零百分比           | 保留方向，幅度显示小于 0.1%，不误报无变化                  |
-| 重复或跨类型同名步骤       | 按类型、名称、出现顺序匹配，输出顺序稳定                   |
-| 步骤仅单侧存在             | 标记新增或移除，缺失和变化显示 `—`                         |
-| 单侧或双侧无步骤           | 单侧全部新增或移除；双侧显示空步骤提示，整体指标保留       |
-| 查看任一 Trace             | 进入对应 Trace 的详情与 Waterfall，刷新仍可定位            |
-| 键盘与移动端               | 可完成选择、交换、清空和链接跳转；焦点可见，页面无水平溢出 |
-| 既有页面                   | 导航、搜索、筛选、分页、选择及既有 Trace 定位保持正确      |
+## Behavior checklist
 
-## 实现边界
+| Scenario                                     | Observable result                                                                                                        |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| First visit or refresh                       | Neither run is selected; comparison and swap are disabled; comparison sections show selection guidance                   |
+| Choose a baseline                            | Comparison offers only runs of the same operation with different IDs; an empty candidate set is explained                |
+| Change or clear a selection                  | Keep valid comparisons, clear invalid ones, and remove stale metrics and steps                                           |
+| Baseline 1000 ms, comparison 1500 ms         | Duration increases by 500 ms and 50.0%                                                                                   |
+| Swap those runs                              | Duration decreases by 500 ms and 33.3%; added and removed step directions reverse                                        |
+| Baseline tokens are zero                     | Absolute change is correct and percentage is unavailable, including when both values are zero                            |
+| Both values are equal and nonzero            | Show no change and 0.0%                                                                                                  |
+| Very small nonzero percentage                | Keep its direction and show a magnitude of less than 0.1%, not no change                                                 |
+| Repeated names or the same name across types | Match by type, name, and occurrence in a stable order                                                                    |
+| A step exists on one side only               | Mark it added or removed; show `—` for the missing value and change                                                      |
+| One or both runs have no steps               | Mark all one-sided steps added or removed; show an empty-step message for two empty runs while retaining overall metrics |
+| Open either trace                            | Show its details and waterfall in Trace Explorer, including after refresh                                                |
+| Keyboard and mobile                          | Selection, swap, clear, and trace links work; focus is visible and the page does not overflow horizontally               |
+| Existing pages                               | Navigation, search, filters, pagination, selection, and existing trace deep links keep working                           |
 
-- [TracePicker](../../../src/pages/TraceCompare/TracePicker.tsx) 是页面私有的领域组件，依赖 Trace 模型及其状态展示，由本页的基准与对照选择区复用。当前与页面放在同一目录；出现跨页复用需求后再评估提升为共享领域组件，不作为通用 UI 基础组件使用。
-- 选中 ID 和可选 Trace 集合由页面控制；TracePicker 只管理弹层、搜索和活动选项。用户选择时通过 `onChange` 通知页面，清空时传入空字符串；搜索、取消或关闭弹层不改变已选执行。Props 类型以组件源码为准。
-- 弹层通过 Portal 挂载到 `document.body`，避免被 Card 裁剪；其样式仍由页面的 [TraceCompare.css](../../../src/pages/TraceCompare/TraceCompare.css) 维护，选择器不能依赖页面祖先节点才能生效。
-- [comparison.ts](../../../src/pages/TraceCompare/comparison.ts) 负责差异计算和步骤配对，不持有页面交互状态。
+## Implementation boundaries
 
-## 实施与交付要求
+- [TracePicker](../../../src/pages/TraceCompare/TracePicker.tsx) is a page-private domain component that depends on the Trace model and its status display. Both pickers on this page reuse it. It stays beside the page until a cross-page use case justifies moving it into shared domain components; it is not a general UI primitive.
+- The page owns selected IDs and available trace collections. TracePicker owns only its popup, search, and active option. It calls `onChange` when the user selects a run and passes an empty string when cleared. Searching, canceling, or closing the popup does not change selection. See the component source for prop types.
+- The popup mounts through a Portal under `document.body` to avoid card clipping. Its styles remain in the page's [TraceCompare.css](../../../src/pages/TraceCompare/TraceCompare.css), so selectors must work without a page ancestor.
+- [comparison.ts](../../../src/pages/TraceCompare/comparison.ts) calculates differences and pairs steps without owning page interaction state.
 
-按 [开发工作流](../../WORKFLOW.md) 执行，按 [验证规范](../../VALIDATION.md) 保留检查证据与截图审核状态；本文不重复维护通用执行规则。
+## Verification references
 
-- 将差异计算与步骤配对放在可独立验证的领域逻辑中，避免与 JSX 耦合；状态只保存必要选择，比较结果从数据派生。
-- 为计算边界、重复步骤配对与输入不变性补针对性测试；行为测试覆盖选择联动、交换、清空、空状态与跨页定位。
-- 新增桌面与移动端视觉用例。共享导航与 Trace 数据集接入需执行完整行为与视觉回归，检查新增记录对现有分页、统计和截图的影响。
-- 同步 README 的页面入口与功能边界。新增样例导致的既有页面可见变化应明确说明，不得静默接受截图差异。
-- 交付报告说明变更范围、复用选择、实际检查结果和待审核项；新视觉基线的候选生成、人工批准与回归通过分别报告。
+- [Behavior tests](../../../tests/behavior.spec.ts) cover calculation boundaries, stable pairing without input mutation, picker selection, swapping, clearing, empty states, and trace links.
+- [Visual tests](../../../tests/visual.spec.ts) define desktop and mobile page and picker screenshots. The [validation guide](../../VALIDATION.md) explains how to compare and approve baselines; this feature document does not assert that a particular test run passed.

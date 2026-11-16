@@ -1,6 +1,6 @@
 # Static deployment
 
-The app builds to static files. It has no backend, authentication, runtime API, or required environment variables. All observability data is deterministic fixture data.
+The app builds to static files. It has no backend, authentication, runtime API, or required environment variables. All observability data is deterministic fixture data. A [live demo](https://code-first.vercel.app/) is available on Vercel.
 
 ## Vercel setup
 
@@ -11,7 +11,7 @@ The checked-in [vercel.json](../vercel.json) selects Vite, runs `npm run build`,
 3. Confirm the build command is `npm run build` and the output directory is `dist`.
 4. Create a preview deployment and perform the checks below before promoting it.
 
-This repository contains deployment configuration, not evidence of an actual deployment. No deployment is created by running the local checks. `Dockerfile.visual` is exclusively a screenshot-test environment.
+The local checks below verify the build and app behavior, not Vercel's routing configuration. `Dockerfile.visual` is exclusively a screenshot-test environment and does not deploy the app.
 
 ## Local production check
 

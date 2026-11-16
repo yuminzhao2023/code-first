@@ -1,42 +1,42 @@
-# 开发工作流
+# Development Workflow
 
-本文规定贡献者与 AI Agent 从接收任务到提交审核的执行流程。
+This workflow takes contributors and AI agents from a new task through review handoff.
 
-## 1. 理解任务与验收条件
+## 1. Understand the task and acceptance criteria
 
-- 阅读与任务相关的实现、组件契约和测试，检查工作区已有改动，保留与当前任务无关的内容。
-- 将需求落实为可观察的行为或布局条件。例如：390px 视口下仅表格容器允许横向滚动，页面整体不溢出，状态筛选行为保持正确。
-- 优先从现有实现和需求上下文消除歧义；当歧义会显著影响行为、交互、范围或成本时澄清，其余采用与现有项目一致的方案并说明假设。
+- Read the relevant implementation, component contracts, and tests. Check the working tree and preserve changes outside the task.
+- Turn the request into observable behavior or layout criteria. For example, at a 390px viewport, only the table container scrolls horizontally, the page itself does not overflow, and status filters still work.
+- Resolve ambiguity from the implementation and request where possible. Ask when an ambiguity would materially affect behavior, interaction, scope, or cost; otherwise, follow the project's existing approach and state the assumption.
 
-## 2. 确定方案及影响范围
+## 2. Choose an approach and scope
 
-明确涉及的页面、领域组件与共享资源；复杂任务拆成可独立审查的步骤，小改动直接实施。
+Identify the affected pages, domain components, and shared resources. Break complex work into reviewable steps; implement small changes directly.
 
-| 变更                 | 实施位置                     | 回归范围                         |
-| -------------------- | ---------------------------- | -------------------------------- |
-| 单个图表的间距       | 对应页面或领域组件的局部样式 | 受影响页面                       |
-| 所有 Card 的圆角     | 已有共享 token               | 所有使用该 token 的页面          |
-| Trace 选择与详情联动 | TraceExplorer 的业务状态     | 搜索、筛选、分页、选择及链接定位 |
-| 多处相同的加载态     | 确认行为契约后再考虑共享组件 | 所有调用方                       |
+| Change                                     | Where to implement it                                              | Regression scope                                       |
+| ------------------------------------------ | ------------------------------------------------------------------ | ------------------------------------------------------ |
+| Spacing in one chart                       | Local styles for that page or domain component                     | The affected page                                      |
+| Radius of every card                       | Existing shared token                                              | Every page using that token                            |
+| Trace selection and detail synchronization | Trace Explorer business state                                      | Search, filters, pagination, selection, and deep links |
+| The same loading state in several places   | Consider a shared component after confirming the behavior contract | Every caller                                           |
 
-## 3. 实施与反馈
+## 3. Implement and get feedback
 
-1. 按验收条件做小范围修改，避免混入无关重构。
-2. 行为改变时同步调整相关测试，覆盖正常路径及相关边界。
-3. UI 变更检查页面视觉与交互，根据实际结果修正；纯文档或注释变更按相应范围检查。
-4. 实施中发现范围或假设变化时，重新评估方案和验收条件，避免无说明地扩大任务。
-5. 形成稳定的共享规则时更新对应规范；单次任务的运行结果放在交付报告或 PR 中。
+1. Make focused changes against the acceptance criteria, without unrelated refactors.
+2. When behavior changes, update relevant tests for the normal path and important edge cases.
+3. For UI changes, inspect appearance and interaction and adjust based on the results. For documentation-only or comment-only changes, run the checks appropriate to that scope.
+4. If the scope or an assumption changes during implementation, revisit the approach and acceptance criteria before expanding the work.
+5. Update the relevant standard when a stable shared rule emerges. Put one-off run results in the delivery report or PR.
 
-## 4. 差异自查与验证
+## 4. Review the diff and verify
 
-- 检查最终 diff，确认本次改动符合验收条件，未混入无关格式修改或覆盖已有工作。
-- 清理本次产生的临时文件、调试代码与无用导入，保留原有的无关文件和改动。
-- 接口、组件契约或功能行为改变时，同步检查调用方、组件文档和功能说明。
-- 按 [验证规范](VALIDATION.md) 选择并执行检查，区分实现错误、环境阻塞和预期视觉差异；截图审批与交付报告要求也由该规范维护。
-- 确认验证覆盖最终实现；验证后又有改动时，根据新增影响补跑相关检查。
+- Review the final diff against the acceptance criteria. Keep unrelated formatting changes out and preserve existing work.
+- Remove temporary files, debug code, and unused imports introduced by this task. Leave unrelated existing files and changes alone.
+- When an interface, component contract, or feature behavior changes, check callers and update component and feature docs.
+- Choose and run checks using the [validation guide](VALIDATION.md). Distinguish implementation failures, environment blockers, and expected visual changes. The guide also defines screenshot approval and delivery reporting.
+- Make sure verification covers the final implementation. After further changes, rerun checks affected by those changes.
 
-## 5. 提交审核与交接
+## 5. Hand off for review
 
-有 PR 时将改动说明与验证证据写入 PR 描述；本地协作时提供任务交付报告。
+For a PR, put the change summary and verification evidence in its description. For local collaboration, provide a task delivery report.
 
-交接时明确尚未解决的问题、未覆盖的验证及待审核项。代码完成、检查通过、审核批准和合并是不同状态，只报告实际达到的状态。是否创建 PR、提交或合并，按任务授权执行，不因完成本流程而自动执行。
+State unresolved issues, verification gaps, and items awaiting review. Code completion, passing checks, approval, and merge are separate states; report only the states actually reached. Create a PR, commit, or merge according to the task's authorization, not automatically as a consequence of this workflow.

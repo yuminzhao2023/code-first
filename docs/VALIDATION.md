@@ -1,22 +1,22 @@
-# 验证规范
+# Validation Guide
 
-本文规定每次变更的验证与证据要求，供 AI Agent 和贡献者执行。它不是项目当前测试状态的记录；单次运行结果应写入任务交付报告或 PR，避免历史环境故障被误读为持续限制。
+This guide defines the checks and evidence required for each change. It is not a record of the project's current test status. Record the results of a particular run in its delivery report or PR so an old environment failure is not mistaken for a permanent limitation.
 
-## 1. 按影响范围选择检查
+## 1. Choose checks by impact
 
-完成任务前，先判断改动是否影响运行时行为、类型、构建或视觉，再按下表选择最低检查范围；多类变更取并集，影响不明确时扩大范围。
+Before finishing, decide whether the change affects runtime behavior, types, the build, or visuals. Attempt at least the checks in the relevant rows; combine rows for changes with multiple effects, and broaden coverage when the impact is unclear.
 
-| 变更类型                                        | 必须尝试的检查                                                              |
-| ----------------------------------------------- | --------------------------------------------------------------------------- |
-| 仅 Markdown、注释或 JSDoc，不改变类型与运行逻辑 | `npm run docs:check`；检查描述与实现的一致性；组件文档的 TSX 示例做类型检查 |
-| 类型、组件接口或构建配置                        | `npm run typecheck`、`npm run build`；按运行时与视觉影响追加下列检查        |
-| 页面行为、业务计算、路由或数据处理              | typecheck、build、相关行为用例                                              |
-| 布局、样式、文案或交互状态的视觉变化            | typecheck、build、受影响页面的行为与视觉用例；按第 2 节检查页面             |
-| 共享 token、组件的运行时实现或全局布局          | typecheck、build、完整行为与视觉回归，覆盖所有受影响页面                    |
-| 文档检查器或其规则                              | `npm run test:docs`、`npm run docs:check`                                   |
-| 测试、验证配置或验收规范                        | 运行被修改或受新规则影响的检查，确认命令与判定方式可执行                    |
+| Change                                                            | Checks to attempt                                                                                                  |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Markdown, comments, or JSDoc only, with no type or runtime change | `npm run docs:check`; confirm the description matches the implementation; typecheck TSX examples in component docs |
+| Types, component interfaces, or build configuration               | `npm run typecheck` and `npm run build`, plus checks below as needed for runtime or visual impact                  |
+| Page behavior, business calculations, routing, or data handling   | Typecheck, build, and relevant behavior tests                                                                      |
+| Layout, styles, copy, or visible interaction states               | Typecheck, build, and affected page behavior and visual tests; inspect pages as described in Section 2             |
+| Shared tokens, runtime components, or global layout               | Typecheck, build, and full behavior and visual regression coverage across affected pages                           |
+| Documentation checker or its rules                                | `npm run test:docs` and `npm run docs:check`                                                                       |
+| Tests, validation configuration, or acceptance rules              | Run the changed or newly affected checks to confirm their commands and pass criteria work                          |
 
-完整检查命令：
+Full check commands:
 
 ```bash
 npm run docs:check
@@ -29,52 +29,52 @@ npm run test:e2e
 npm run test:visual:docker
 ```
 
-`npm run check` 执行文档、Lint、全仓格式检查、类型检查，并构建后对生产产物运行完整行为测试，不依赖 Docker。`npm test` 仅运行本机行为测试。生产产物行为测试也可单独运行 `npm run test:e2e:preview`。
+`npm run check` runs documentation, lint, whole-repository formatting, and type checks, then builds and runs the full behavior suite against the production output. It does not require Docker. `npm test` runs only local behavior tests. To run behavior tests against the production output separately, use `npm run test:e2e:preview`.
 
-测试固定使用 Playwright 配套 Chromium。本机系统不受该版本支持时，在受支持的系统、兼容容器或 CI 环境运行浏览器检查。本机没有 Docker 时，保留统一视觉回归的待验证状态，在 CI 或其他具备 Docker 的环境中完成截图对比。不得把本机行为通过描述为统一视觉通过。
+Browser tests use the Chromium version bundled with Playwright. If the local OS does not support that version, run browser checks on a supported OS, in a compatible container, or in CI. If Docker is unavailable locally, leave the standardized visual comparison pending and complete it in CI or another Docker-capable environment. Passing local behavior tests does not count as passing the standardized visual comparison.
 
-格式检查直接使用 `prettier --check .`，格式化使用 `prettier --write .`；统一读取 `.prettierrc.json` 与 `.prettierignore`，不依赖 Git 历史。源代码、测试或配置变更应运行 `npm run lint`、`npm run format:check`。用 `npm run format` 格式化后审阅 diff；首次全仓格式整理应明确范围，后续功能修改避免混入无关格式变更。
+Formatting checks run `prettier --check .` and formatting runs `prettier --write .`. Both use `.prettierrc.json` and `.prettierignore`, regardless of Git history. Run `npm run lint` and `npm run format:check` for source, test, or configuration changes. Review the diff after `npm run format`; if formatting the whole repository for the first time, state that scope explicitly. Later feature changes should not include unrelated formatting.
 
-可用 `npm run test:e2e -- --grep 'Trace Explorer'` 等方式限定相关用例；若筛选未匹配任何用例，不算验证完成。共享变更使用完整命令。
+You can narrow behavior tests with a command such as `npm run test:e2e -- --grep 'Trace Explorer'`. A filter that matches no tests is not a completed check. Use the full command for shared changes.
 
-- Typecheck、构建、行为与视觉检查不能互相替代；语法解析无错误也不代表类型检查成功。
-- 文档 TSX 示例应在保留相对导入路径的条件下，将代码块提取为与文档同目录的临时 `.tsx` 文件，并通过继承 `tsconfig.app.json` 的临时配置将其与 `src/` 一起检查；检查后清理临时文件与配置。类型通过不代表示例已完成浏览器验证。
-- 报告实际运行的命令、选取范围及原因。按范围省略的检查标为“未运行（不适用）”，不能写成通过。
-- 环境阻塞或失败时，保留原始错误并说明原因，不能降低验证要求以掩盖失败。
+- Typecheck, build, behavior, and visual checks cover different risks. Parsing successfully does not prove type safety.
+- To typecheck a TSX example in documentation, extract its code block into a temporary `.tsx` file beside the document so relative imports still work. Check it together with `src/` using a temporary configuration that extends `tsconfig.app.json`. Remove both temporary files afterward. Passing the typecheck does not mean the example was tested in a browser.
+- Report the commands actually run, their scope, and why that scope was chosen. Mark checks omitted because they do not apply as "not run (not applicable)," not as passed.
+- Preserve the original error when a check fails or the environment blocks it. Explain the cause without relaxing the requirements to conceal a failure.
 
-## 2. 页面与交互检查
+## 2. Page and interaction checks
 
-- 根据变更检查涉及的搜索、筛选、分页、选择、重置、路由和空结果状态。
-- UI 变更检查桌面 1440×900、移动端 390×844，以及标签、键盘操作、可见焦点和页面溢出。
-- 修改共享 token 或组件时，检查所有受影响页面，不把范围固定为最初的两个页面。
-- 自动化测试未覆盖的人工检查，报告中单独说明是否完成。
+- Check relevant search, filter, pagination, selection, reset, routing, and empty-result states.
+- For UI changes, inspect desktop at 1440×900 and mobile at 390×844, including labels, keyboard operation, visible focus, and page overflow.
+- When shared tokens or components change, inspect every affected page rather than limiting checks to the first two pages.
+- Report separately whether manual checks not covered by automation were completed.
 
-### 截图边界
+### Screenshot boundaries
 
-- 共享导航和顶栏分别维护桌面、紧凑布局和移动端截图，使用固定入口展示一致的选中态；导航截图在桌面使用固定视口高度，避免随页面内容长度变化。
-- 各页只截 `.content-wrap` 内容区域，不把共享导航和顶栏重复纳入每张页面基线；Portal 弹层单独截图，避免依赖其 DOM 挂载位置。
-- 截图拆分不改变实际页面布局，也不通过隐藏导航、遮罩或放宽像素阈值忽略回归。完整页面的导航选中态、面包屑、区域相对位置及横向溢出仍需行为检查。
-- 新增导航项通常只需审阅共享导航基线；若同时改变内容可用宽度、共享样式或页面数据，相关内容截图仍应正常产生差异，不能为避免失败而屏蔽。
+- Maintain separate desktop, compact-layout, and mobile screenshots for the shared navigation and header. Use a fixed route to show the same selected state. On desktop, capture navigation at a fixed viewport height so page length does not change its screenshot.
+- Capture only each page's `.content-wrap` in its content baseline instead of repeating shared navigation and header in every page screenshot. Capture Portal overlays separately so tests do not depend on where they mount in the DOM.
+- Splitting screenshots must not change the actual layout or hide regressions by concealing navigation, adding masks, or relaxing pixel thresholds. Behavior tests must still check the full page's selected navigation state, breadcrumbs, relative section positions, and horizontal overflow.
+- A new navigation item usually needs review of only the shared navigation baseline. If it also changes content width, shared styles, or page data, the relevant content screenshots must still show those differences; do not suppress them to avoid failures.
 
-## 3. 视觉基线与批准
+## 3. Visual baselines and approval
 
-`npm run test:visual` 在本机运行，可用于检查当前系统的截图差异；`npm run test:visual:docker` 通过 Docker Compose 在 `Dockerfile.visual` 固定的 Linux Playwright 镜像中运行，Mac、Windows 和 CI 均以此环境生成和比较统一基线。`npm run test:visual:docker -- --grep '用例名'` 等筛选参数会透传给容器内的 Playwright。更新 Playwright 依赖时同步更新镜像版本；本机直接运行 Playwright 的截图结果不用于批准统一基线。
+`npm run test:visual` runs locally and can reveal screenshot differences on the current system. `npm run test:visual:docker` uses Docker Compose and the Linux Playwright image pinned in `Dockerfile.visual` to generate and compare the common baseline on macOS, Windows, and CI. Filters such as `npm run test:visual:docker -- --grep 'test name'` are passed through to Playwright in the container. Update the image version when updating Playwright. Screenshots produced by local Playwright runs cannot be used to approve the common baseline.
 
-1. 先运行 `npm run test:visual:docker`，检查实际截图、预期截图和 PNG diff。
-2. 判断差异是回归、预期设计变化，还是浏览器、字体或操作系统差异；回归应先修复。
-3. 首次缺少基线或预期设计变化需要新参考图时，明确说明更新范围，再有意运行 `npm run test:visual:update`；该命令会更新所有视觉用例，应检查是否产生无关改动。
-4. 人工审阅生成的 PNG 和差异，取得批准后才能将新基线作为验收依据或提交到版本控制。未获批准时保留审核状态，不宣称视觉回归通过。
-5. 基线获批后重新运行 `npm run test:visual:docker`，确认对比通过。
+1. Run `npm run test:visual:docker` first and inspect the actual image, expected image, and PNG diff.
+2. Decide whether a difference is a regression, an intended design change, or an environment difference involving the browser, fonts, or OS. Fix regressions first.
+3. If a baseline is missing or an intended design change needs a new reference image, state the update scope and deliberately run `npm run test:visual:update`. This command updates every visual test, so inspect the diff for unrelated changes.
+4. Review the generated PNGs and differences manually. Obtain approval before using a new baseline as acceptance evidence or committing it. Until approval, report the baseline as pending review rather than claiming visual regression passed.
+5. After approval, rerun `npm run test:visual:docker` to confirm the comparison passes.
 
-不得为了让测试变绿而批量接受差异。生成候选截图与人工批准是两个步骤；截图对比通过也不能替代产品和设计验收。
+Do not accept differences in bulk just to turn tests green. Generating candidate screenshots and approving them are separate steps; even a passing screenshot comparison does not replace product and design review.
 
-## 4. 交付报告
+## 4. Delivery report
 
-报告包含：
+Include:
 
-- 用实际问题与最终行为描述改动，列出改动文件、原因，以及局部与共享实现的选择理由。
-- 实际运行的命令及通过、失败、未运行状态。
-- 失败的具体原因，截图或测试产物位置，以及尚未覆盖的检查。
-- 是否需要人工审核或批准；需要时指出具体页面和差异。
+- The actual problem and final behavior, changed files and reasons, and why an implementation is local or shared.
+- Commands actually run and whether each passed, failed, or was not run.
+- Specific causes of failures, screenshot or test artifact locations, and verification gaps.
+- Any human review or approval still needed, with the affected pages and differences identified.
 
-环境问题只描述本次观察到的事实，不据此推断用户本机或未来运行也会失败。
+Describe environment issues only as observed in this run; do not assume the user's machine or a future run will fail the same way.

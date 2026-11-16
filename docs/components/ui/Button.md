@@ -1,14 +1,14 @@
 # Button
 
-用于触发重置、翻页等操作；跨页面导航使用链接。组件沿用原生按钮语义，不负责业务状态或异步请求。
+Use Button for actions such as resetting filters or changing pages. Use links for navigation. The component preserves native button semantics; callers own business state and asynchronous requests.
 
-## 变体与示例
+## Variants and example
 
-- `primary`：当前区域的重点操作。
-- `secondary`：次要操作，也是默认变体。
-- `ghost`：低强调操作。
+- `primary`: The main action in the current area.
+- `secondary`: A supporting action and the default variant.
+- `ghost`: An action with less visual emphasis.
 
-以下示例的重置和翻页由调用方提供实际处理函数：
+The caller supplies real reset and pagination handlers in this example:
 
 ```tsx
 import { Button } from '../../../src/components/ui/Button';
@@ -39,16 +39,16 @@ export function ButtonExample({
 }
 ```
 
-## 契约与状态
+## Contract and states
 
-完整属性与默认值见 [Button.tsx](../../../src/components/ui/Button.tsx)。默认 `type="button"`，表单提交须显式设置 `type="submit"`；原生事件和 ARIA 属性透传。
+See [Button.tsx](../../../src/components/ui/Button.tsx) for all props and defaults. The default is `type="button"`; set `type="submit"` explicitly for form submission. Native events and ARIA attributes pass through.
 
-| 状态     | 用法与检查点                                         |
-| -------- | ---------------------------------------------------- |
-| 默认     | 文案描述动作，变体体现操作权重                       |
-| 悬停     | 主按钮已有 hover 样式；不假定所有变体有独立 hover 色 |
-| 键盘焦点 | Tab 聚焦后显示共享焦点提示，Enter 或 Space 触发操作  |
-| 禁用     | 使用 `disabled`，由浏览器阻止操作并退出正常 Tab 顺序 |
-| 只有图标 | 提供 `aria-label`，装饰 Icon 自身不提供按钮名称      |
+| State          | Usage and check                                                                              |
+| -------------- | -------------------------------------------------------------------------------------------- |
+| Default        | Label the action clearly and use the variant to show its priority                            |
+| Hover          | The primary button has a hover style; do not assume every variant has a distinct hover color |
+| Keyboard focus | Tab shows the shared focus ring; Enter or Space activates the button                         |
+| Disabled       | Use `disabled` so the browser prevents activation and removes it from the normal Tab order   |
+| Icon only      | Provide an `aria-label`; a decorative Icon does not name the button                          |
 
-没有专用的 loading 状态或防重复请求机制；若引入异步操作，需要由调用方管理并定义反馈。
+There is no built-in loading state or duplicate-request prevention. If an action becomes asynchronous, the caller must manage it and define the feedback.
