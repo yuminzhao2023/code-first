@@ -1,58 +1,64 @@
-# 异常分析页
+# Error Analysis
 
-## 目标
+## At a glance
 
-新增 `/errors` 页面，帮助开发者找到高频异常、缩小影响范围，并进入关联 Trace 排查失败调用。
+The implemented `/errors` page helps developers find frequent failures, narrow their scope, and inspect the runs behind them.
 
-## 页面内容
+- **Accurate counts:** Multiple error events from one trace count as one failed run.
+- **Connected views:** Search and filters update the overview, distribution, list, and details together.
+- **Direct investigation:** Each related run links to its selected trace in Trace Explorer, including after a refresh.
 
-在侧边栏 OBSERVE 下新增 **Error Analysis** 入口，页面包含：
+The aggregation rules live in [analysis.ts](../../../src/pages/ErrorAnalysis/analysis.ts); [behavior tests](../../../tests/behavior.spec.ts) cover filtering, deduplication, selection, and trace links.
 
-| 区域       | 内容                                         |
-| ---------- | -------------------------------------------- |
-| 异常概览   | 失败次数、受影响服务数、最常见异常类型及次数 |
-| 搜索与筛选 | 关键词搜索、服务筛选、模型筛选、重置         |
-| 异常分布   | 按服务或模型展示失败次数的横向条形图         |
-| 异常列表   | 异常类型、服务、模型、失败次数、最近发生时间 |
-| 异常详情   | 选中异常的错误信息及关联执行记录             |
+## Page layout
 
-桌面端列表与详情左右排列，移动端上下排列。
+The OBSERVE section of the sidebar links to **Error Analysis**. The page contains:
 
-## 交互规则
+| Area               | Content                                                                                      |
+| ------------------ | -------------------------------------------------------------------------------------------- |
+| Error overview     | Failed-run count, number of affected services, and the most common error type with its count |
+| Search and filters | Keyword search, service and model filters, and reset                                         |
+| Error distribution | Horizontal bars showing failed-run counts by service or model                                |
+| Error list         | Error type, service, model, failure count, and most recent occurrence                        |
+| Error details      | The selected error's message and related runs                                                |
 
-### 搜索与筛选
+The list and details sit side by side on desktop and stack on mobile.
 
-- 搜索匹配异常类型、错误信息、服务名称或 Trace ID，忽略大小写及首尾空格。
-- 服务和模型默认选择“全部”，与搜索条件取交集；选项始终来自完整数据集。
-- 所有数据区域同步反映当前筛选结果。
-- 重置恢复全部数据、默认排序和首条选择。
+## Interaction rules
 
-### 概览与分布
+### Search and filters
 
-- 失败次数按失败执行计数，同一 Trace 的多个失败 Span 不重复计算。
-- 受影响服务数按服务去重；最常见异常按异常类型汇总，次数相同时按类型名称升序选择。
-- 分布图默认按服务统计，可切换为按模型统计；按次数降序、同次数按名称升序排列，显示具体数值。
-- 切换统计维度保留筛选条件和选中异常。
+- Search matches the error type, message, service name, or Trace ID, ignoring case and surrounding whitespace.
+- Service and model default to All and intersect with the search query. Their options always come from the full dataset.
+- Every data area reflects the current filtered results.
+- Reset restores all data, default sorting, and selection of the first group.
 
-### 列表与详情
+### Overview and distribution
 
-- 按“异常类型 + 服务 + 模型”分组，次数和最近发生时间根据组内当前匹配事件计算。
-- 默认按次数降序，支持切换升降序；同次数按最近发生时间降序，再按分组键升序排列。
-- 点击异常类型选择该组，详情展示组信息、最新匹配事件的完整错误信息，以及当前匹配的关联执行。
-- 关联执行按时间降序排列，展示发生时间、操作名称、Trace ID 和“View Trace”链接。
-- 同组同一 Trace 有多条事件时保留最新一条；同时间按错误消息升序选取。关联执行时间相同时按 Trace ID 升序，保证结果不受事件到达顺序影响。
-- 默认选中首组；排序保留选择；筛选移除选中组时，自动选择结果首组。
-- 无匹配结果时，次数和服务数显示 0，最常见异常显示“No exceptions”，列表提示调整筛选或重置，详情清空。
+- Failure totals count distinct failed runs, so multiple failed spans in one trace contribute only one failure.
+- The overview counts distinct affected services and aggregates the most common error by type. Ties go to the type whose name sorts first.
+- The distribution defaults to service and can switch to model. Bars show their counts in descending order, with names ascending on ties.
+- Switching the distribution dimension preserves filters and the selected error.
 
-### 跳转 Trace
+### List and details
 
-- “View Trace”链接为 `/?trace=<traceId>`，进入 Trace Explorer 后仅展示该 ID 对应的表格记录，并选中对应执行；搜索框显示该 ID，详情和瀑布图同步展示。
-- 编辑搜索内容或重置筛选时清除 `trace` 参数，恢复普通搜索与筛选行为，保留其他 URL 参数。
-- 直接访问及刷新链接均能定位；参数缺失或无效时使用原有默认选择。
+- Events are grouped by error type, service, and model. Each group's count and latest occurrence come from the currently matching events.
+- Groups sort by descending count by default, with a toggle for ascending order. Count ties use the most recent occurrence, then the group key in ascending order.
+- Clicking an error type selects its group. Details show the group information, the full message of its latest matching event, and the currently matching related runs.
+- Related runs appear in reverse chronological order with time, operation, Trace ID, and a "View Trace" link.
+- If a group contains multiple events for one trace, only the latest is kept. Tied timestamps use the message that sorts first; related runs with the same time sort by Trace ID so arrival order cannot affect the result.
+- The first group is selected initially. Sorting preserves selection; if filtering removes it, the first remaining group becomes selected.
+- With no matches, the page shows 0 failures and 0 affected services, "No exceptions" for the most common type, guidance to adjust or reset filters in the list, and no details.
 
-## 数据范围
+### Opening a trace
 
-- 使用固定异常样例，覆盖多个服务、模型、异常类型及同组多次发生。
-- 每个异常事件关联一条存在且状态为 `error` 的 Trace，服务、模型和操作名称取自该 Trace；`warning` 不计入失败。
-- 为异常事件补充类型、错误信息及带时区的完整发生时间，展示固定时间范围，不提供时间筛选。
-- 本页仅提供异常分析和 Trace 跳转，不包含告警通知、异常处理、重试或自动修复。
+- "View Trace" links to `/?trace=<traceId>`. Trace Explorer then shows only that trace in its table and selects it; the search field contains its ID, and the details and waterfall show the same run.
+- Editing the search or resetting filters removes the `trace` parameter and restores ordinary search and filtering, while preserving other URL parameters.
+- Direct visits and refreshes locate the trace. A missing or invalid parameter uses the original default selection.
+
+## Data and scope
+
+- Fixed error fixtures cover several services, models, error types, and repeated occurrences within a group.
+- Every error event points to an existing trace with status `error`. Its service, model, and operation come from that trace; `warning` does not count as a failure.
+- Each event has a type, message, and full timestamp with a time zone. The page shows a fixed time range without a time filter.
+- The page analyzes failures and links to traces. It does not send alerts, retry runs, or repair failures.

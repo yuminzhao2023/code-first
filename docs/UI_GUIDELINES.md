@@ -1,88 +1,88 @@
 # UI Guidelines — PulseTrace Lab
 
-本文维护跨页面适用的视觉、交互与 UI 复用规则，供 AI Agent 和贡献者使用。具体功能行为见对应页面、测试及 `docs/features/`。
+These guidelines define visual, interaction, and UI reuse rules shared across pages for AI agents and contributors. Page-specific behavior belongs in the relevant page, tests, and `docs/features/`.
 
-## 1. 适用范围与设计目标
+## 1. Scope and design goals
 
-- **用户**：调试 LLM 与 Agent 执行过程的开发者。
-- **信息密度**：支持密集的数据浏览，同时保持行内容、标签和操作可读。
-- **视觉方向**：暗色开发者工具界面，使用统一的强调色体系，状态颜色保持语义一致。
-- **实现依据**：共享视觉值以 [tokens.css](../src/styles/tokens.css) 为准；组件用法以现有 UI 组件和已验收页面为参考。Figma 不是必要依赖。
-- **规范边界**：本文描述应遵循的规则，不代表现有实现已全部满足；已知例外在对应章节说明，不据此自动扩大重构范围。
+- **Audience:** Developers debugging LLM and agent executions.
+- **Information density:** Support dense data exploration without sacrificing the readability of rows, labels, or actions.
+- **Visual direction:** A dark developer-tool interface with a consistent accent palette and semantically consistent status colors.
+- **Source of truth:** Use [tokens.css](../src/styles/tokens.css) for shared visual values. Refer to existing UI components and accepted pages for component usage. Figma is optional.
+- **Scope of these rules:** These are requirements, not a claim that every existing page already meets them. Known exceptions are called out below; they do not automatically authorize broader refactoring.
 
-## 2. 视觉基础
+## 2. Visual foundations
 
-### Token 与颜色
+### Tokens and color
 
-| Token                                                              | 用途                         | 避免                                 |
-| ------------------------------------------------------------------ | ---------------------------- | ------------------------------------ |
-| `--color-bg` / `--color-sidebar`                                   | 页面画布与导航背景           | 页面自行建立另一套背景主题           |
-| `--color-surface` / `--color-surface-raised`                       | 面板与层级表面               | 为相同层级新增任意面板颜色           |
-| `--color-surface-hover` / `--color-surface-selected`               | 悬停与选中状态               | 将悬停当作持久选中状态               |
-| `--color-text` / `--color-text-muted` / `--color-text-faint`       | 主要内容、次要信息和辅助说明 | 关键内容使用过弱的文字颜色           |
-| `--color-accent` 及其变体                                          | 当前导航、重点操作和视觉强调 | 用强调色表达错误                     |
-| `--color-success` / `--color-warning` / `--color-danger`           | 成功、警告和错误             | 仅通过颜色传达状态                   |
-| `--color-chart-agent` / `--color-chart-llm` / `--color-chart-tool` | Span 类型区分                | 在不同视图中随意改变类型配色         |
-| `--color-border` / `--color-border-soft`                           | 边界与内容分隔               | 为相同边界增加不同颜色               |
-| `--radius-card` / `--shadow-card`                                  | 共享面板外观                 | 在单个页面覆盖所有 Card 的圆角或阴影 |
-| `--space-*`                                                        | 可重复的间距尺度             | 为相同用途随意选择不同间距           |
-| `--focus-ring`                                                     | 键盘焦点提示                 | 移除焦点提示而不提供替代             |
+| Token                                                              | Use                                                         | Avoid                                                |
+| ------------------------------------------------------------------ | ----------------------------------------------------------- | ---------------------------------------------------- |
+| `--color-bg` / `--color-sidebar`                                   | Page canvas and navigation backgrounds                      | Creating a separate background theme for one page    |
+| `--color-surface` / `--color-surface-raised`                       | Panels and layered surfaces                                 | Adding arbitrary panel colors at the same level      |
+| `--color-surface-hover` / `--color-surface-selected`               | Hover and selected states                                   | Treating hover as a persistent selection             |
+| `--color-text` / `--color-text-muted` / `--color-text-faint`       | Primary content, secondary information, and supporting text | Using faint text for essential content               |
+| `--color-accent` and its variants                                  | Current navigation, primary actions, and emphasis           | Using the accent color to signal errors              |
+| `--color-success` / `--color-warning` / `--color-danger`           | Success, warning, and error states                          | Conveying status through color alone                 |
+| `--color-chart-agent` / `--color-chart-llm` / `--color-chart-tool` | Distinguishing span types                                   | Changing type colors between views                   |
+| `--color-border` / `--color-border-soft`                           | Boundaries and content separators                           | Giving equivalent boundaries different colors        |
+| `--radius-card` / `--shadow-card`                                  | Shared panel appearance                                     | Overriding every card's radius or shadow on one page |
+| `--space-*`                                                        | Reusable spacing scale                                      | Choosing inconsistent spacing for the same purpose   |
+| `--focus-ring`                                                     | Visible keyboard focus                                      | Removing the focus indicator without a replacement   |
 
-新增样式优先使用现有 token。`app.css` 中仍有字面颜色和间距；这是已有实现差异，不要求每次任务批量迁移，也不应把所有一次性数值都新增为 token。
+Prefer existing tokens for new styles. `app.css` still contains literal colors and spacing values; that is an existing inconsistency, not a request to migrate them all during every task. One-off values do not all need new tokens.
 
-### 排版与数据展示
+### Typography and data display
 
-- 正文与控件使用 `--font-ui`；ID、Span 标签等技术标识需要等宽展示时使用 `--font-mono` 或现有 `.mono` 样式。
-- 延续页面标题、分区标题、Card 标题、正文和辅助说明的层级，优先复用现有样式；不在本文件复制字号数值。
-- 表格的名称与描述左对齐，数值列沿用现有右对齐方式；可比较的数字使用等宽数字，明确单位和精度。
-- 图标复用现有 `Icon`；装饰图标不替代文字标签，只有图标的操作仍需提供可访问名称。
+- Use `--font-ui` for body text and controls. Use `--font-mono` or the existing `.mono` class when technical identifiers such as IDs and span labels need monospaced text.
+- Preserve the hierarchy of page titles, section headings, card titles, body text, and supporting text. Reuse existing styles instead of duplicating font-size values here.
+- Left-align table names and descriptions; keep numeric columns right-aligned as in existing tables. Use tabular numerals for values that readers compare, and show units and precision clearly.
+- Reuse the existing `Icon` component. Decorative icons do not replace text labels, and icon-only actions still need accessible names.
 
-## 3. 布局与响应式
+## 3. Layout and responsiveness
 
-- 桌面 1440×900、移动端 390×844 是参考检查尺寸，不是固定画布；中间宽度也应随容器调整。
-- 复用 AppShell、页面标题区、指标网格与 Card 的现有布局。视口变窄时，操作区允许换行，多列内容按现有断点收为较少列。
-- 宽表格与 Waterfall 可在各自容器内横向滚动，不能撑宽整个页面；移动端保留导航和主要操作。
-- 长文本按所在区域选择换行或局部滚动；使用截断时，应保留查看完整内容的途径，不能只隐藏关键标识或错误信息。
+- Desktop 1440×900 and mobile 390×844 are reference sizes for checking, not fixed canvases. Layouts should also adapt at widths between them.
+- Reuse the layouts for AppShell, page headers, metric grids, and cards. Let action areas wrap as the viewport narrows, and reduce multi-column layouts at existing breakpoints.
+- Wide tables and waterfalls may scroll horizontally inside their own containers; they must not widen the entire page. Keep navigation and primary actions available on mobile.
+- Wrap long text or allow local scrolling as appropriate. If text is truncated, provide a way to read it in full; do not simply hide key identifiers or errors.
 
-## 4. 通用交互与状态
+## 4. Shared interactions and states
 
-### 操作与输入
+### Actions and inputs
 
-- 导航与跨页面跳转使用真实链接；选择或执行操作使用按钮，不能仅依赖可点击的 `tr`。
-- 重点操作使用主按钮，次要操作保持较低视觉权重；操作文案说明具体动作。
-- 状态通过文字与颜色共同表达，保持语义映射一致。
-- 搜索与筛选保留明确标签，现有 React 表单使用受控输入；占位文字不能作为唯一标签。
+- Use real links for navigation and cross-page jumps, and buttons for selections and actions. Do not rely on a clickable `tr` alone.
+- Use primary buttons for prominent actions and lower visual weight for secondary actions. Labels should name the action.
+- Express status through both text and color, using the same semantic mapping throughout.
+- Keep explicit labels on search and filters. Existing React forms use controlled inputs; placeholders are not labels.
 
-共享组件特有的用途、示例与限制集中在 `docs/components/` 维护；页面私有组件的行为与限制随对应功能文档维护。按任务需要查阅，修改组件契约时同步更新。API 类型以组件源码为准，不在总规范重复维护 Props 表。
+Component-specific purposes, examples, and limits belong in `docs/components/`. Keep page-private component behavior with the relevant feature document. Read these docs when the task calls for them, and update them when changing a component contract. The component source defines its API types; do not duplicate prop tables in these general guidelines.
 
-### 状态与反馈
+### States and feedback
 
-- 悬停、键盘焦点、选中和禁用是不同状态。复用现有样式并保留状态语义，例如选择按钮的 `aria-pressed`、导航的 `aria-current` 和排序表头的 `aria-sort`。
-- 所有操作可通过键盘访问，保留可见焦点；禁用操作使用实际禁用属性，不能只改变外观。
-- 空结果提供有意义的说明；详情与当前可见结果保持一致，没有可选记录时显示空详情提示。
-- 分页、筛选、排序与选择的具体联动属于页面行为契约，不把某一页的条数限制推广到所有表格。
-- 实际引入异步数据时，再定义加载、请求失败和重试行为；不为尚未接入的能力添加假交互。
+- Hover, keyboard focus, selection, and disabled are distinct states. Preserve their meanings and reuse existing styles, including `aria-pressed` on selection buttons, `aria-current` on navigation, and `aria-sort` on sortable table headers.
+- Make every action keyboard accessible and keep focus visible. Use the actual disabled attribute for unavailable actions rather than changing appearance alone.
+- Explain empty results. Keep details synchronized with the visible results and show an empty-detail message when no record can be selected.
+- Pagination, filtering, sorting, and selection interact according to each page's behavior contract. Do not apply one page's row limit to every table.
+- Define loading, request failure, and retry behavior when asynchronous data is actually introduced. Do not add fake interactions for features that are not implemented.
 
-## 5. 组件归属与扩展边界
+## 5. Component ownership and extension
 
-| 位置                            | 职责                                                |
-| ------------------------------- | --------------------------------------------------- |
-| `src/components/ui/`            | 通用 UI 基础组件，新增组件不依赖领域模型            |
-| `src/components/layout/`        | 共享工作区与导航布局                                |
-| `src/components/observability/` | TraceTable、TraceWaterfall、LatencyChart 等领域视图 |
-| `src/pages/`                    | 页面组合、数据选择、业务状态、页面私有组件与资源    |
-| `src/styles/`                   | 共享 token 与全局／基础样式                         |
+| Location                        | Responsibility                                                                           |
+| ------------------------------- | ---------------------------------------------------------------------------------------- |
+| `src/components/ui/`            | General UI primitives; new components must not depend on domain models                   |
+| `src/components/layout/`        | Shared workspace and navigation layout                                                   |
+| `src/components/observability/` | Domain views such as TraceTable, TraceWaterfall, and LatencyChart                        |
+| `src/pages/`                    | Page composition, data selection, business state, and page-private components and assets |
+| `src/styles/`                   | Shared tokens and global or base styles                                                  |
 
-页面专用组件可与页面放在同一目录，不因使用 React 组件形式就必须放入 `components/`。同一页面内多处使用属于局部复用，不自动要求提升为共享组件。跨页面出现相同需求时，再评估契约与维护成本：共享领域组件放入 `components/observability/`，不依赖领域模型的通用基础组件放入 `components/ui/`；共享组件不反向引用页面私有模块。
+Page-specific components may live alongside their page; using React does not require moving them to `components/`. Reuse within one page is still local reuse. When the same need appears on multiple pages, assess the behavior contract and maintenance cost: put shared domain components in `components/observability/` and domain-independent primitives in `components/ui/`. Shared components must not import page-private modules.
 
-**已有例外**：`StatusBadge` 位于 `ui/`，但依赖 `TraceStatus` 领域枚举。保留现状不代表允许新增类似依赖；迁移应在有明确范围的重构任务中处理。
+**Existing exception:** `StatusBadge` lives in `ui/` but depends on the domain-specific `TraceStatus` enum. Keeping it there does not justify adding similar dependencies. Move it only as part of a clearly scoped refactor.
 
-只有同时满足以下条件，才提取共享 UI 组件：
+Extract shared UI components only when all of the following apply:
 
-1. 至少两个使用场景具有相同的行为与视觉契约。
-2. 接口能够保持简洁、稳定，不需要大量开关适配不同业务。
-3. 提取能减少维护成本，而不是为单个案例创建通用抽象。
+1. At least two use cases share the same behavior and visual contract.
+2. The interface can stay small and stable without many switches for different business cases.
+3. Extraction reduces maintenance work rather than creating a general abstraction for one case.
 
-未满足时保持局部实现。例如，TraceWaterfall 与 LatencyChart 的数据语义不同，不应仅因都绘制图形而合并为通用图表组件。
+Otherwise, keep the implementation local. TraceWaterfall and LatencyChart, for example, have different data semantics and should not be merged simply because both draw charts.
 
-新增 token 必须表达有复用价值的视觉语义，并有多个实际使用场景；单处需求优先保持局部样式。共享规则改变时，明确原因与所有受影响页面，不能只检查最初的两个页面。仅在形成稳定、可复用规则时更新本规范。
+New tokens should represent reusable visual meaning and have multiple real uses; keep one-off needs in local styles. When a shared rule changes, explain why and check every affected page, not just the first two. Update these guidelines only when a stable, reusable rule emerges.

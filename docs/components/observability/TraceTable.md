@@ -1,8 +1,8 @@
 # TraceTable
 
-用于展示 Trace 记录并通知页面选择了哪条记录。它依赖 Trace 数据与状态语义，因此属于领域组件，不是通用表格。
+TraceTable displays trace records and tells the page which record the user selected. It depends on trace data and status semantics, so it is a domain component rather than a general-purpose table.
 
-## 受控选择示例
+## Controlled selection example
 
 ```tsx
 import { useState } from 'react';
@@ -22,21 +22,21 @@ export function TraceTableExample({ rows }: { rows: Trace[] }) {
 }
 ```
 
-示例由父组件将有效选择或首条记录传给表格。实际页面还用同一条 `selected` 渲染详情，见 [TraceExplorer.tsx](../../../src/pages/TraceExplorer.tsx)。
+The parent passes either a valid selection or the first row to the table. The actual page also uses that same `selected` record for its detail view; see [TraceExplorer.tsx](../../../src/pages/TraceExplorer.tsx).
 
-## 职责与契约
+## Responsibilities and contract
 
-完整属性见 [TraceTable.tsx](../../../src/components/observability/TraceTable.tsx)。
+See [TraceTable.tsx](../../../src/components/observability/TraceTable.tsx) for the complete props.
 
-| 组件负责                                    | 页面负责                           |
-| ------------------------------------------- | ---------------------------------- |
-| 按输入顺序渲染记录                          | 数据获取、筛选、排序和分页         |
-| 用 `selectedId` 标记选中行与 `aria-pressed` | 维护选择，结果变化时计算有效选择   |
-| 点击操作按钮时调用 `onSelect(id)`           | 更新选择、详情与相关 URL 状态      |
-| 空数组显示空结果提示                        | 保持详情与可见记录一致，处理空详情 |
-| 表格容器横向滚动                            | 防止外层布局撑宽视口               |
+| TraceTable                                                   | Page                                                                 |
+| ------------------------------------------------------------ | -------------------------------------------------------------------- |
+| Renders records in the order received                        | Fetches, filters, sorts, and paginates the data                      |
+| Marks the selected row with `selectedId` and `aria-pressed`  | Owns selection and finds a valid selection when results change       |
+| Calls `onSelect(id)` when the row's action button is clicked | Updates selection, details, and related URL state                    |
+| Shows an empty-result message for an empty array             | Keeps details in sync with visible records and handles empty details |
+| Scrolls horizontally within its container                    | Prevents the outer layout from widening the viewport                 |
 
-- 每条记录的 `id` 必须唯一；组件不修改输入数据。
-- `selectedId` 未匹配任何记录时，不高亮任何行，也不自动触发回调。
-- 时间和耗时使用已有 Trace 契约与格式化函数，不在组件内猜测时区或修改数据。
-- 每页 5 条是 Trace Explorer 的规则；TraceTable 会展示传入的全部记录，没有内置条数限制。
+- Each record must have a unique `id`. The component does not mutate its input.
+- If `selectedId` matches no record, no row is highlighted and no callback fires automatically.
+- Timestamps and durations follow the existing Trace contract and formatting helpers. The component does not guess time zones or rewrite data.
+- Trace Explorer limits pages to five records. TraceTable renders every record it receives and has no built-in row limit.
