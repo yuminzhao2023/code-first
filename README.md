@@ -1,6 +1,6 @@
 # PulseTrace · Agent Observability UI Lab
 
-PulseTrace is a React and TypeScript demo for investigating AI agent runs through trace inspection, model metrics, error analysis, and run comparison. It also demonstrates how a project-specific AI development harness helps AI generate visually consistent pages and reuse existing components. That harness combines [agent instructions](AGENTS.md), [UI guidelines](docs/UI_GUIDELINES.md), [design tokens](src/styles/tokens.css), [component contracts](docs/components/), and [tests](tests/).
+PulseTrace is a React and TypeScript demo for investigating AI agent runs through trace inspection, model metrics, error analysis, and run comparison. It also demonstrates how a project-specific AI development harness helps AI generate visually consistent pages and reuse existing components. That harness combines [agent instructions](AGENTS.md), [UI guidelines](docs/ui-guidelines.md), [design tokens](src/styles/tokens.css), [component contracts](docs/components/), and [tests](tests/).
 
 **[Live demo](https://code-first.vercel.app/)** · **Built with:** React 19, TypeScript, Vite, and Playwright
 
@@ -37,12 +37,12 @@ npx playwright install chromium
 npm run check
 ```
 
-`npm run check` runs documentation, lint, formatting, type, build, and behavior checks. For reproducible visual comparisons, install Docker and run `npm run test:visual:docker`. See the [validation guide](docs/VALIDATION.md) for screenshot baseline updates and review.
+`npm run check` runs documentation, lint, formatting, type, build, and behavior checks. For reproducible visual comparisons, install Docker and run `npm run test:visual:docker`. See the [validation guide](docs/validation.md) for screenshot baseline updates and review.
 
 ## Scope and further reading
 
 All traces, requests, costs, and performance figures are **fixtures, not production observability data**.
 
-See the [development workflow](docs/WORKFLOW.md), [UI guidelines](docs/UI_GUIDELINES.md), [code guidelines](docs/CODE_GUIDELINES.md), and [deployment guide](docs/DEPLOYMENT.md).
+See the [development workflow](docs/workflow.md), [UI guidelines](docs/ui-guidelines.md), [code guidelines](docs/code-guidelines.md), and [deployment guide](docs/deployment.md).
 
 This is a portfolio project with no open source license. Contact the author before redistributing it or using it commercially.

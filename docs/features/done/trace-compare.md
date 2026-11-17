@@ -135,4 +135,4 @@ An added or removed step has no duration change; show `—` rather than treating
 ## Verification references
 
 - [Behavior tests](../../../tests/behavior.spec.ts) cover calculation boundaries, stable pairing without input mutation, picker selection, swapping, clearing, empty states, and trace links.
-- [Visual tests](../../../tests/visual.spec.ts) define desktop and mobile page and picker screenshots. The [validation guide](../../VALIDATION.md) explains how to compare and approve baselines; this feature document does not assert that a particular test run passed.
+- [Visual tests](../../../tests/visual.spec.ts) define desktop and mobile page and picker screenshots. The [validation guide](../../validation.md) explains how to compare and approve baselines; this feature document does not assert that a particular test run passed.

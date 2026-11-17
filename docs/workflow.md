@@ -32,7 +32,7 @@ Identify the affected pages, domain components, and shared resources. Break comp
 - Review the final diff against the acceptance criteria. Keep unrelated formatting changes out and preserve existing work.
 - Remove temporary files, debug code, and unused imports introduced by this task. Leave unrelated existing files and changes alone.
 - When an interface, component contract, or feature behavior changes, check callers and update component and feature docs.
-- Choose and run checks using the [validation guide](VALIDATION.md). Distinguish implementation failures, environment blockers, and expected visual changes. The guide also defines screenshot approval and delivery reporting.
+- Choose and run checks using the [validation guide](validation.md). Distinguish implementation failures, environment blockers, and expected visual changes. The guide also defines screenshot approval and delivery reporting.
 - Make sure verification covers the final implementation. After further changes, rerun checks affected by those changes.
 
 ## 5. Hand off for review

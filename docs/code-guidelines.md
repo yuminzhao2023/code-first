@@ -48,6 +48,7 @@ Keep comments current with the implementation and focus on reasons and constrain
 
 ## 6. Documentation and references
 
+- Use lowercase kebab-case Markdown filenames throughout `docs/` (for example, `code-guidelines.md`). Files under `docs/components/` retain the matching component names (for example, `Button.md`).
 - Keep standards in the `docs/` root and component and feature guides in their respective subdirectories. Maintain each rule in one place; link to it at the step where it is needed rather than copying it or repeating a list of standards.
 - AGENTS is the required entry point for AI agents. Standards must not direct readers back to AGENTS or end with a generic related-standards list.
 - Reading requirements between standards must flow in one direction. Use explicit Markdown links for required dependencies, not plain text or inline code. Before adding a link, confirm that the destination supplies a rule needed at that step and does not lead back to the current document. Do not require material that is already in context.
