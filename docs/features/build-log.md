@@ -1,6 +1,6 @@
 # Feature build log
 
-Observed progress and verification evidence for session handoff. Phase files own feature scope; maintenance rules live in the repository's agent instructions.
+Observed progress and verification evidence for session handoff. Phase files own feature scope; [Workflow](../workflow.md) owns log maintenance rules.
 
 ## Current summary
 
@@ -66,3 +66,12 @@ Historical environment issues and temporary test artifacts are not assumed to pe
 - **Inspection:** searched current repository text and filenames, including hidden and ignored files outside dependencies, generated output, test artifacts, and Git internals. The obsolete documents were already absent; Git history was inspected for context and left unchanged.
 - **Verification:** `npm run docs:check`, `npm run lint`, `npm run format:check`, and `git diff --check` passed. A follow-up filename/content scan found no targeted references in the inspected scope. Typecheck, build, behavior, and visual tests were not run (not applicable: documentation and a formatter exclusion only).
 - **Handoff:** no new blocker identified; no feature phase started. Await the next requested task.
+
+### 2026-11-18T12:46:55+08:00 — Documentation: agent instruction routing
+
+- **Context and scope:** `master`, base `6756d72`, initially clean working tree. Reviewed the sole repository AGENTS file, README, all project docs, relevant source, configuration, tests, and scripts. No GOALS, PLANS, or PROMPTS files exist; none were added. This task changes only six existing Markdown files.
+- **Changes:** reduced root AGENTS from 101 to 34 lines with task-based reading conditions. Consolidated module ownership, state, types, and performance guidance in Code Guidelines; UI Guidelines now references that ownership definition. Moved log maintenance rules from AGENTS to Workflow, superseding the location recorded in the earlier log correction. Kept phase goals and all historical verification evidence in their existing owners.
+- **Accuracy:** documented `TraceStatus` as a union and clarified the visual update script's existing filter support. No application behavior, acceptance criteria, checker rules, configuration, tests, or baselines changed.
+- **Basis:** [AGENTS.md open format](https://agents.md/), [Codex instruction discovery](https://learn.chatgpt.com/docs/agent-configuration/agents-md), and [Codex best practices](https://learn.chatgpt.com/docs/learn/best-practices) informed the short entry point and conditional guidance; project-specific rules were checked against the repository.
+- **Verification:** `npm run docs:check` passed (14 Markdown files, 7 entry/standard files); `npm run format:check` and `git diff --check` passed. Typecheck, build, behavior, and visual runs were not run (not applicable: Markdown-only changes); no component TSX examples or checker rules were edited. Existing feature acceptance gaps remain unchanged.
+- **Handoff:** no new blocker or active feature phase. Resume according to the next requested task; this documentation refactor starts no feature work or baseline approval.

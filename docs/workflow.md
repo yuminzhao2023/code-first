@@ -40,3 +40,13 @@ Identify the affected pages, domain components, and shared resources. Break comp
 For a PR, put the change summary and verification evidence in its description. For local collaboration, provide a task delivery report.
 
 State unresolved issues, verification gaps, and items awaiting review. Code completion, passing checks, approval, and merge are separate states; report only the states actually reached. Create a PR, commit, or merge according to the task's authorization, not automatically as a consequence of this workflow.
+
+## 6. Phase progress and build-log maintenance
+
+For feature work or phase recovery, read the [roadmap](plan.md), [build log](features/build-log.md), and relevant phase file before implementation. Select the phase by the user's task or observed work; the latest numbered phase is not automatically active. A read-only answer or routine typo fix does not need a new log entry.
+
+- **Ownership:** the roadmap contains phase goals, dependencies, and execution-plan links; phase/component documents contain scope and behavior contracts; the log contains observed progress and verification evidence. Keep maintenance rules here rather than copying them into the log.
+- **Summary:** keep implementation and acceptance status separate. Identify active feature work only when it is underway, and distinguish confirmed defects/blockers from verification gaps. Mark missing historical metadata as unknown.
+- **Activity:** append material phase progress, changes to this development workflow, review outcomes, or unresolved handoff items. Include a timestamp with timezone, phase or documentation scope, branch and revision/working-tree context, material changes, exact check commands/results, applicable review state, limitations, and the next authorized action. Link to detailed evidence rather than copying full plans, code, or command output.
+- **Evidence:** distinguish observed, reported, and historical results and explain skipped checks. Documentation-only changes do not invalidate historical feature results or require unrelated runtime tests. Claim acceptance passed only with the required checks and applicable approvals for the relevant implementation.
+- **Corrections:** update the summary when evidence changes and append corrections identifying superseded claims. Preserve earlier failures and their resolution. Do not infer completion from existing code or treat a next-action note as permission to start another phase.

@@ -65,17 +65,7 @@ Component-specific purposes, examples, and limits belong in `docs/components/`. 
 
 ## 5. Component ownership and extension
 
-| Location                        | Responsibility                                                                           |
-| ------------------------------- | ---------------------------------------------------------------------------------------- |
-| `src/components/ui/`            | General UI primitives; new components must not depend on domain models                   |
-| `src/components/layout/`        | Shared workspace and navigation layout                                                   |
-| `src/components/observability/` | Domain views such as TraceTable, TraceWaterfall, and LatencyChart                        |
-| `src/pages/`                    | Page composition, data selection, business state, and page-private components and assets |
-| `src/styles/`                   | Shared tokens and global or base styles                                                  |
-
-Page-specific components may live alongside their page; using React does not require moving them to `components/`. Reuse within one page is still local reuse. When the same need appears on multiple pages, assess the behavior contract and maintenance cost: put shared domain components in `components/observability/` and domain-independent primitives in `components/ui/`. Shared components must not import page-private modules.
-
-**Existing exception:** `StatusBadge` lives in `ui/` but depends on the domain-specific `TraceStatus` enum. Keeping it there does not justify adding similar dependencies. Move it only as part of a clearly scoped refactor.
+When adding or extracting components, follow the module ownership and dependency rules in [Code Guidelines](code-guidelines.md). Reuse within one page can stay local.
 
 Extract shared UI components only when all of the following apply:
 

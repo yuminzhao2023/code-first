@@ -2,35 +2,48 @@
 
 ## 1. Module boundaries and dependencies
 
-- Organize modules by responsibility and use a consistent structure for similar code.
-- Keep code and assets that change together close together. Put genuinely shared behavior in an explicit shared module.
-- Give each module a clear interface so callers do not depend on implementation details.
-- Keep dependencies moving in one direction. General-purpose modules must not depend on individual pages, and circular dependencies should be avoided.
+| Location                        | Responsibility                                                                          |
+| ------------------------------- | --------------------------------------------------------------------------------------- |
+| `src/pages/`                    | Page composition, business state, and page-private components, calculations, and styles |
+| `src/components/ui/`            | General UI primitives without new domain dependencies                                   |
+| `src/components/observability/` | Shared trace and metrics views with domain semantics                                    |
+| `src/components/layout/`        | Shared workspace shell and navigation layout                                            |
+| `src/router/`                   | Router setup; `routes.ts` drives page registration, navigation, and breadcrumbs         |
+| `src/data/`                     | Deterministic fixtures, including related error and comparison records                  |
+| `src/types/observability.ts`    | Shared domain contracts such as Trace, Span, Model, and TraceStatus                     |
+| `src/lib/format.ts`             | Shared display formatting                                                               |
+| `src/styles/`                   | Semantic tokens and global styles; page-private styles stay beside their page           |
+
+- Keep code that changes together close together, as with `ErrorAnalysis/analysis.ts` and `TraceCompare/comparison.ts`. Shared modules must not import page-private modules; avoid circular dependencies.
+- `StatusBadge` currently lives in `ui/` and imports the domain-specific `TraceStatus` union. This existing exception does not authorize more domain dependencies or an unrelated move.
 - When changing module boundaries, update imports, tests, and related documentation together.
 
 ## 2. Responsibilities and reuse
 
-- Components handle presentation and interaction. Move complex business calculations out of rendering code so they can be understood and tested independently.
-- Prefer calculations that take explicit inputs and return results. Keep data access and other side effects in clearly owned locations.
-- Do not mutate data passed in by callers unless the interface contract explicitly allows it.
-- Before extracting shared behavior, confirm that its use cases have the same behavior contract. Keep the resulting interface small.
-- Split code when doing so makes it easier to understand and change. Avoid abstractions for hypothetical needs.
+- Check existing components, helpers, and callers before adding equivalents. Extract shared behavior when real uses share a contract and a small interface reduces maintenance; keep one-page reuse local. Do not unify different charts or tables behind many business-case switches.
+- Move complex calculations into plain functions with explicit inputs and results, independent of React and runtime fixture imports, as in `analysis.ts` and `comparison.ts`. Keep data access and other effects clearly owned.
+- Extract a custom Hook for reusable stateful or effectful behavior when needed; pure calculations remain plain functions. Do not create a Hooks, service, or global state layer for hypothetical use.
+- Do not mutate caller-owned data or fixtures; use `readonly` inputs where appropriate and copy arrays before sorting them.
 
 ## 3. Types, data, and state
 
-- Express data contracts with specific types. Do not use `any` or type assertions to hide uncertainty.
+- Reuse shared domain types and keep private types local. Use specific unions for finite choices and mutually exclusive props, as in `TraceStatus` and `MetricCard`. Do not hide uncertain data with `any` or unchecked assertions; narrow or validate it.
+- TypeScript, ESLint, and Prettier configuration own compiler, Hooks, and formatting rules. Preserve those checks; use `import type` for type-only imports under `verbatimModuleSyntax`.
 - Validate external data at the system boundary, and define how missing, invalid, and failed inputs are handled.
-- Give each piece of information a clear source of truth. Derive values from existing data instead of storing duplicate state when possible.
-- Keep state in the component or module that owns it; do not maintain independent copies of the same state.
-- Give side effects explicit triggers, and handle cleanup, cancellation, and repeated execution where needed.
+- Keep filters and selections with their page, transient popup state with its picker, and pass controlled values and callbacks to children. Derive visible rows, selected records, and summaries instead of storing duplicate results.
+- Preserve each page's filter, sorting, pagination, selection, and URL/history behavior, including empty results. Use the relevant feature/component document and acceptance tests for page-specific rules; do not generalize one page's row limit to every table.
+- Use effects for external synchronization rather than pure derivation; clean up listeners and support StrictMode's repeated setup/cleanup. If a task introduces requests, define ownership, response validation, loading, failure, retry, and stale-response or cancellation handling.
+- Keep units, missing values, and zero denominators explicit in calculations. Model P95 values cannot be averaged into an overall P95; current fixtures lack request-level samples or a mergeable histogram.
+
+### Performance
+
+- Pure work on fixed fixtures can run outside rendering when it does not depend on props or state, as in Error Analysis. Derive state-dependent results during rendering; consider memoization for costly repeated work.
+- Do not blanket-add `memo`, `useMemo`, or `useCallback`. Tie optimizations to an observed cost, verify the affected interaction, and measure claimed speedups. Correctness must not depend on memoization.
 
 ## 4. Naming, formatting, and styles
 
-- Choose names that convey purpose and domain meaning, following the conventions of the surrounding module.
-- Keep functions, components, and files focused. Use local variables or helper functions to make complex expressions easier to follow.
-- Format nested JSX, multi-step functions, and style rules so their hierarchy and control flow are easy to inspect.
-- Keep local styles with their modules; manage global styles and design tokens centrally.
-- Scope selectors to prevent local changes from affecting unrelated modules.
+- Follow surrounding naming conventions and let Prettier handle mechanical formatting. Keep functions and files focused; use local helpers to clarify complex expressions.
+- Scope local selectors so they cannot affect unrelated pages. Styles for Portal content must also work outside the page's DOM ancestor.
 
 ## 5. Comments and interface documentation
 

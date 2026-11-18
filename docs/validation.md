@@ -31,6 +31,8 @@ npm run test:visual:docker
 
 `npm run check` runs documentation, lint, whole-repository formatting, and type checks, then builds and runs the full behavior suite against the production output. It does not require Docker. `npm test` runs only local behavior tests. To run behavior tests against the production output separately, use `npm run test:e2e:preview`.
 
+The behavior suite in `tests/behavior.spec.ts` includes direct tests of calculation modules as well as browser interactions. When behavior changes, cover the relevant normal path and important boundaries such as empty data, zero baselines, deterministic ordering, input immutability, and deep links. Reuse existing test helpers when their contracts match.
+
 Browser tests use the Chromium version bundled with Playwright. If the local OS does not support that version, run browser checks on a supported OS, in a compatible container, or in CI. If Docker is unavailable locally, leave the standardized visual comparison pending and complete it in CI or another Docker-capable environment. Passing local behavior tests does not count as passing the standardized visual comparison.
 
 Formatting checks run `prettier --check .` and formatting runs `prettier --write .`. Both use `.prettierrc.json` and `.prettierignore`, regardless of Git history. Run `npm run lint` and `npm run format:check` for source, test, or configuration changes. Review the diff after `npm run format`; if formatting the whole repository for the first time, state that scope explicitly. Later feature changes should not include unrelated formatting.
@@ -62,7 +64,7 @@ You can narrow behavior tests with a command such as `npm run test:e2e -- --grep
 
 1. Run `npm run test:visual:docker` first and inspect the actual image, expected image, and PNG diff.
 2. Decide whether a difference is a regression, an intended design change, or an environment difference involving the browser, fonts, or OS. Fix regressions first.
-3. If a baseline is missing or an intended design change needs a new reference image, state the update scope and deliberately run `npm run test:visual:update`. This command updates every visual test, so inspect the diff for unrelated changes.
+3. If a baseline is missing or an intended design change needs a new reference image, state the update scope and deliberately run `npm run test:visual:update`. Without a filter it updates the full visual suite; use `-- --grep 'test name'` to limit candidates to affected tests. Inspect the diff for unrelated changes.
 4. Review the generated PNGs and differences manually. Obtain approval before using a new baseline as acceptance evidence or committing it. Until approval, report the baseline as pending review rather than claiming visual regression passed.
 5. After approval, rerun `npm run test:visual:docker` to confirm the comparison passes.
 
