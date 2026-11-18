@@ -1,5 +1,5 @@
 /**
- * 异常分析页私有的关联与聚合规则，对应 docs/features/done/error-analysis.md。
+ * 异常分析页私有的关联与聚合规则，对应 docs/features/build/phase-01-error-analysis.md。
  * 显式接收输入，不读取固定样例或依赖 React，便于独立评审统计口径。
  */
 import type { ErrorEvent } from '../../data/errors';

@@ -13,7 +13,7 @@ PulseTrace is a React and TypeScript demo for investigating AI agent runs throug
 | [Error Analysis](https://code-first.vercel.app/errors) | Review error counts by failed run, filter events, and jump to the related trace.                                       |
 | [Trace Compare](https://code-first.vercel.app/compare) | Compare two runs of the same operation, including their metrics and matching steps.                                    |
 
-For a closer look at the decisions behind two pages, see [Error Analysis](docs/features/done/error-analysis.md) and [Trace Compare](docs/features/done/trace-compare.md).
+For a closer look at the decisions behind two pages, see [Error Analysis](docs/features/build/phase-01-error-analysis.md) and [Trace Compare](docs/features/build/phase-02-trace-compare.md). The [roadmap](docs/plan.md) lists phase goals, dependencies, and execution plans; the [build log](docs/features/build-log.md) records progress and verification evidence for development handoff.
 
 ## Engineering highlights
 
@@ -45,4 +45,4 @@ All traces, requests, costs, and performance figures are **fixtures, not product
 
 See the [development workflow](docs/workflow.md), [UI guidelines](docs/ui-guidelines.md), [code guidelines](docs/code-guidelines.md), and [deployment guide](docs/deployment.md).
 
-This is a portfolio project with no open source license. Contact the author before redistributing it or using it commercially.
+This project has no open source license. Contact the author before redistributing it or using it commercially.

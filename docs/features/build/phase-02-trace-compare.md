@@ -1,4 +1,4 @@
-# Trace Compare
+# Phase 02 — Trace Compare
 
 The implemented `/compare` page places two runs of the same operation side by side so developers can inspect duration, token use, and the steps behind a difference. All values are fixtures.
 

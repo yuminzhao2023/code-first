@@ -24,6 +24,8 @@ Read the relevant implementation and tests before editing. For pages or shared U
 
 For non-UI tasks, read Code Guidelines, Workflow, Validation, and the affected files. Read component and feature docs only as needed; keep detailed rules in their owning documents rather than duplicating them here.
 
+For feature work or session handoff, read the [roadmap](docs/plan.md), [build log](docs/features/build-log.md), and the phase file relevant to the requested task or identified by the log. Keep goals, dependencies, and phase links in the roadmap; maintain observed progress and verification evidence in the build log using the rules below.
+
 ## 3. Module responsibilities
 
 | Location                           | Responsibility                                                                            |
@@ -82,10 +84,18 @@ For non-UI tasks, read Code Guidelines, Workflow, Validation, and the affected f
 - Preserve the separate shared-chrome, page-content, and Portal screenshot boundaries. Inspect intended differences and obtain baseline approval before treating new screenshots as acceptance evidence or committing them.
 - Report changed files, reasons, commands actually run, results, and verification gaps. Distinguish skipped checks, environment blockers, and pending review from passing checks.
 
-## 10. No invented metrics
+## 10. Build log maintenance
+
+- Keep the log to a short purpose statement, current summary, and append-only material activity. Put maintenance rules here and feature scope in phase files; link to detailed evidence instead of copying plans or full reports.
+- Separate implementation status from acceptance status. Identify an active feature phase only when work is actually underway; the latest numbered phase is not automatically active. Separate confirmed defects/blockers from verification gaps.
+- For each material event, record a timestamp with timezone, phase or documentation scope, observed branch and revision/working-tree context, changes, exact commands and concise results, applicable review state, limitations, and the next authorized action. Mark missing historical metadata as unknown.
+- Distinguish observed, reported, and historical evidence; explain skipped checks. A documentation-only change does not invalidate historical feature results or require unrelated runtime tests. Claim acceptance passed only with the required checks and applicable approvals for the relevant implementation.
+- Update the current summary when evidence changes. Append corrections identifying superseded claims; preserve earlier failures and their resolution. Do not silently rewrite evidence, infer completion from existing code, or turn a next action into authorization for another phase.
+
+## 11. No invented metrics
 
 All traces, requests, performance stats and costs in this repo are fixtures. Do not claim they are production observability measurements. Preserve statistical meaning: do not average model P95 values into an overall P95; the current fixtures lack request-level samples or a mergeable histogram.
 
-## 11. Optional MCP tools
+## 12. Optional MCP tools
 
 Figma MCP is NOT required for this repository. Browser Playwright automation is useful for inspection; prefer accessibility-based selectors for interactions and screenshots for visual diagnosis. If MCP tools are unavailable, rely on the included Playwright tests and explain the limitation.

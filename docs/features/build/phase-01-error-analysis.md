@@ -1,4 +1,4 @@
-# Error Analysis
+# Phase 01 — Error Analysis
 
 ## At a glance
 
